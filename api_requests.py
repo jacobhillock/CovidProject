@@ -34,5 +34,5 @@ def us_state_specific(use_ts=False, state_code='MI'):
     return request_data(url, use_ts)
 
 def counties_specific(use_ts=False, country_fips="26161"):
-    url = base_url_specific_county.replace("{county}", country_fips)
+    url = base_url_specific_county.replace("{fips}", country_fips)
     return request_data(url, use_ts)
