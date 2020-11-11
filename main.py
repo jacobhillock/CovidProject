@@ -1,4 +1,4 @@
-from api_requests import counties_specific
+from api_requests import all_counties, counties_specific
 from os.path import isfile, join
 from json import loads, dumps
 from time import sleep
@@ -26,6 +26,11 @@ def load_state_codes():
     with open('state_list.txt') as file:
         data = loads(file.read())
     return data['state_keys']
+
+def load_fips():
+    with open('fips_list.txt') as file:
+        data = file.read().split('\n')
+    return data
 
 def proc_ts (data):
     frame = pd.DataFrame(
@@ -55,7 +60,7 @@ def write_ts (data, file_name):
     
     open(file_name, 'w+').write(frame.to_csv())
 
-def write (data, file_name):
+def write (data, file_name, jsonify=True):
     # states = {}
     # for point in data:
     #     hash_val = f"{point['state']}_{point['lastUpdatedDate']}"
@@ -65,18 +70,23 @@ def write (data, file_name):
     #         "riskLevels": point.get("riskLevels", None),
     #         "actuals":    point.get("actuals", None)
     #     }
-    open(file_name, 'w+').write(dumps(data, indent='\t'))
+    if jsonify:
+        open(file_name, 'w+').write(dumps(data, indent='\t'))
+    else:
+        open(file_name, 'w+').write(data)
 
 
 
 def main():
     if not isfile('state_list.txt'):
         download_states_codes()
+    fips = load_fips()
     # data = us_states()
-    data = counties_specific(use_ts=True)
-    # print(data)
-    write(data, 'temp.json')
-    write_ts(data, 'wash.csv')
+    data = []
+    for fip in fips:
+        # sleep(.125)
+        data.append(counties_specific(use_ts=True, fips=fip))
+    write_ts(data, 'db.csv')
 
 
 if __name__ == '__main__':
