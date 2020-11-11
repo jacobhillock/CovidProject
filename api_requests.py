@@ -16,7 +16,7 @@ def request_data (url, use_ts, ret_str):
     url = url.replace("{apiKey}", load_key())
     url = url.replace("{use_ts}", ".timeseries" if use_ts else "")
     r = req_get(url)
-    print(url)
+    # print(url)
     data = json_loads(r.text) if not ret_str else r.text
     return data
 
