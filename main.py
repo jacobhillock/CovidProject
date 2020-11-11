@@ -78,14 +78,21 @@ def write (data, file_name, jsonify=True):
 
 
 def main():
-    if not isfile('state_list.txt'):
-        download_states_codes()
+
     fips = load_fips()
-    # data = us_states()
     data = []
-    for fip in fips:
-        # sleep(.125)
-        data.append(counties_specific(use_ts=True, fips=fip))
+    index = 0
+    exp = 1
+    while index < len(fips):
+        sleep(.125*exp)
+        try:
+            data.append(counties_specific(use_ts=True, fips=fips[index]))
+        except:
+            print(f"{fips[index]} failed, will retry")
+            exp *= 2
+        else:
+            index += 1
+            exp = 1
     write_ts(data, 'db.csv')
 
 
