@@ -1,5 +1,5 @@
 .secrets/*
-
+*.csv
 
 # Created by https://www.toptal.com/developers/gitignore/api/vscode,python,venv
 # Edit at https://www.toptal.com/developers/gitignore?templates=vscode,python,venv
