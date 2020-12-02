@@ -5,7 +5,7 @@ from os.path import isfile, join, normpath, basename
 from json import loads, dumps
 from time import sleep
 from requests import get as req_get
-from pandas import DataFrame as df
+from csv import DictWriter
 
 
 def load_fips():
@@ -14,32 +14,39 @@ def load_fips():
     return data
 
 def proc_ts (data):
-    frame = df(
-        columns=["date", "fips", "cases", "deaths", "positiveTests", "negativeTests", "newCases"]
-    )
+    frame = []
+    keys = [
+        "date",
+        "fips",
+        "cases",
+        "deaths",
+        "positiveTests",
+        "negativeTests",
+        "newCases",
+    ]
     for loc in data:
         fips = loc.get("fips")
         for point in loc["actualsTimeseries"]:
-            frame = frame.append({
-                "date"          : point.get("date",          None),
-                "fips"          : fips,
-                "cases"         : point.get("cases",         None),
-                "deaths"        : point.get("deaths",        None),
-                "positiveTests" : point.get("positiveTests", None),
-                "negativeTests" : point.get("negativeTests", None),
-                "newCases"      : point.get("newCases",      None)
-                },
-                ignore_index=True
-            )
-    frame = frame.fillna(0)
-    return frame
+            frame.append({
+                "date": point.get("date", None),
+                "fips": fips,
+                "cases": point.get("cases", None),
+                "deaths": point.get("deaths", None),
+                "positiveTests": point.get("positiveTests", None),
+                "negativeTests": point.get("negativeTests", None),
+                "newCases": point.get("newCases", None),
+            })
+    return frame, keys
     
-def write_ts (data, file_name):
-    frame = proc_ts(data)
-    open(file_name, 'w+').write(frame.to_csv())
-
-def write (data, file_name):
-    open(file_name, 'w+').write(data)
+def write (data, file_name, csv=True):
+    frame, keys = proc_ts(data)
+    if csv:
+        with open(file_name, 'w+') as file:
+            writer = DictWriter(file, fieldnames=keys)
+            writer.writeheader()
+            writer.writerows(frame)
+    else:
+        open(file_name, 'w+').write(str(frame))
 
 def aws_cred ():
     global cred
@@ -84,7 +91,7 @@ def main():
         else:
             index += 1
             exp = 1
-    write_ts(data, 'db.csv')
+    write(data, 'db.csv')
 
     upload_file_to_s3("./db.csv")
 
